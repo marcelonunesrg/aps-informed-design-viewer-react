@@ -165,3 +165,38 @@ This file tracks the implementation history of this app. We will append new entr
 - Made highlight background theme-aware for dark mode compatibility.
 - Fixed dark-mode contrast issues for focused Access Type input label/outline.
 - Updated Cancel actions to outlined buttons and normalized action button dimensions so Cancel and primary actions have matching visual size in dialogs.
+
+---
+
+## 2026-03-12
+
+### Open Release dialog behavior and data flow
+- Stabilized release selection/open behavior so selected release data is persisted and used consistently on submit.
+- Refined URL update and reload behavior for release opening flow.
+- Added `Release Details` panel with release metadata and thumbnail rendering support.
+
+### Informed Design integration updates
+- Added and wired PUBLIC publishers data flow and source panel.
+- Implemented thumbnail object-key resolution using product download URL endpoint.
+- Expanded product/release payload parsing to support richer metadata fields.
+
+### USER mode iteration and rollback
+- Implemented USER-mode users loading by selected hub account using HQ users API.
+- Added fallback to current authenticated user when users API fails.
+- Added temporary debug logging for user/auth payload inspection, then removed all debug logs.
+- Removed USER access type and all USER-only UI/state/data paths per product direction.
+
+### Auth profile mapping
+- Updated user profile mapping so `userId` is sourced from `/userinfo` `eidm_guid` (fallback to `sub`).
+- Updated auth service tests to match new profile shape including `userId`.
+
+### Test/lint quality and repo setup
+- Fixed failing frontend tests and restored green test suite (`23` files, `86` tests passing).
+- Reviewed ESLint status; left only existing non-blocking warning in `App.tsx`.
+- Hardened root `.gitignore` for monorepo defaults and refined env ignore patterns.
+
+### Git/GitHub initialization and branch management
+- Initialized git repository and created initial commit.
+- Added remote origin and pushed repository to GitHub.
+- Renamed local branch to `main`, pushed and tracked `origin/main`.
+- Synced local remote refs after default-branch switch and remote `master` cleanup.
