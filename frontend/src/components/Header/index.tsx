@@ -17,6 +17,7 @@ import type { HeaderProps } from "./useHeader";
 
 export function Header({
   userProfile,
+  hasOpenRelease,
   accountMenuAnchor,
   accountMenuOpen,
   onOpenAccountMenu,
@@ -26,8 +27,6 @@ export function Header({
   onRequestLogout,
 }: HeaderProps) {
   const { t } = useTranslation();
-
-  console.log("[Header] userProfile", userProfile);
 
   return (
     <AppBar
@@ -52,7 +51,7 @@ export function Header({
           onClick={onOpenReleaseDialog}
           sx={{ mr: 1, textTransform: "none" }}
         >
-          {t("open")}
+          {hasOpenRelease ? t("openAnotherRelease") : t("openRelease")}
         </Button>
         <IconButton
           color="inherit"

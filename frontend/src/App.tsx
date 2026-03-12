@@ -94,6 +94,7 @@ function App() {
         <div className="page-shell">
           <Header
             userProfile={userProfile}
+            hasOpenRelease={isComplete}
             accountMenuAnchor={accountMenuAnchor}
             accountMenuOpen={accountMenuOpen}
             onOpenAccountMenu={openAccountMenu}

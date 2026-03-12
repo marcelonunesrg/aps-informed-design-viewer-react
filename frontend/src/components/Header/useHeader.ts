@@ -5,6 +5,7 @@ import type { UserProfile } from "../../types";
 
 export interface HeaderProps {
   userProfile: UserProfile | null;
+  hasOpenRelease: boolean;
   accountMenuAnchor: HTMLElement | null;
   accountMenuOpen: boolean;
   onOpenAccountMenu: (event: MouseEvent<HTMLElement>) => void;
