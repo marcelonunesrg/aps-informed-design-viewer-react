@@ -1,0 +1,24 @@
+{
+  "name": "aps-informed-design-viewer-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev:fe": "npm --prefix frontend run dev",
+    "dev:core": "npm run dev:fe",
+    "lint:fe": "npm --prefix frontend run lint",
+    "lint": "npm run lint:fe",
+    "test:fe": "npm --prefix frontend run test",
+    "test": "npm run test:fe",
+    "test:watch:fe": "npm --prefix frontend run test:watch",
+    "test:watch": "npm run test:watch:fe",
+    "build:fe": "npm --prefix frontend run build",
+    "build": "npm run build:fe",
+    "build:verify": "npm run build:fe",
+    "dev:all": "concurrently -n frontend,e2e -c green,magenta \"npm run dev:fe\" \"npm run debug:e2e\"",
+    "debug:e2e": "node scripts/debug-browser-logs.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "playwright": "^1.52.0"
+  }
+}
