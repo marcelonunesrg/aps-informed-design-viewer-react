@@ -20,10 +20,7 @@ lerna-debug.log*
 
 # Environment files
 .env
-.env.*
-!.env.example
 **/.env
-**/.env.*
 
 # Local overrides
 *.local
