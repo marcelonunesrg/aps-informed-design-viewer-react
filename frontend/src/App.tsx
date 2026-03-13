@@ -56,7 +56,6 @@ function App() {
     releaseData,
     activeReleaseData,
     loadRequestId,
-    releaseFormError,
     isComplete,
     persistCurrentUrlStateBeforeLogin,
     submitSpecificReleaseData,
