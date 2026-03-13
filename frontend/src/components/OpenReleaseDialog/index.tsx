@@ -26,14 +26,22 @@ export function OpenReleaseDialog({
   const { t } = useTranslation();
   const {
     projectPicker,
+    sourceProjectPicker,
+    targetProjectPicker,
     treeNodes,
     accError,
+    sourceTreeNodes,
+    targetTreeNodes,
+    sourceAccError,
+    targetAccError,
     publishers,
     isLoadingPublishers,
     publishersError,
     selectedPublisherId,
     selectedContextId,
     selectedFolderId,
+    selectedSourceFolderId,
+    selectedTargetFolderId,
     isLoadingIndProjects,
     indProjectsError,
     expandedProductIds,
@@ -48,8 +56,12 @@ export function OpenReleaseDialog({
     selectedReleaseDetails,
     getLatestSelectedReleaseData,
     handleFolderSelect,
+    handleSourceFolderSelect,
+    handleTargetFolderSelect,
     handlePublisherSelect,
     handleToggleFolder,
+    handleToggleSourceFolder,
+    handleToggleTargetFolder,
     handleToggleProduct,
     handleSelectRelease,
     setSelectedCategory,
@@ -64,9 +76,15 @@ export function OpenReleaseDialog({
       maxWidth="lg"
       PaperProps={{
         sx: {
-          minHeight: "75vh",
+          height: "min(80vh, 800px)",
+          maxHeight: "800px",
           width: "95vw",
           maxWidth: "1400px",
+          "@media (max-height: 699px)": {
+            height: "100dvh",
+            maxHeight: "100dvh",
+            m: 0,
+          },
         },
       }}
     >
@@ -99,9 +117,14 @@ export function OpenReleaseDialog({
           >
             <MenuItem value="ACC">ACC</MenuItem>
             <MenuItem value="PUBLIC">PUBLIC</MenuItem>
+            <MenuItem value="BRIDGE">BRIDGE</MenuItem>
           </TextField>
 
-          {accessType === "ACC" && <ProjectPicker picker={projectPicker} />}
+          {accessType === "ACC" && (
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <ProjectPicker picker={projectPicker} />
+            </Box>
+          )}
 
           {accessType === "PUBLIC" && (
             <TextField
@@ -121,7 +144,7 @@ export function OpenReleaseDialog({
             </TextField>
           )}
         </Box>
-        {(accessType === "ACC" || accessType === "PUBLIC") && (
+        {(accessType === "ACC" || accessType === "PUBLIC" || accessType === "BRIDGE") && (
           <Box sx={{ display: "flex", gap: 2, mt: 2, flex: 1, minHeight: 0 }}>
             {accessType === "ACC" && (
               <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
@@ -151,6 +174,38 @@ export function OpenReleaseDialog({
                   onSelectPublisher={handlePublisherSelect}
                 />
               </Box>
+            )}
+
+            {accessType === "BRIDGE" && (
+              <>
+                <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+                  <ProjectPicker picker={sourceProjectPicker} label="Source Hub/Project" />
+                  <Typography variant="subtitle2" sx={{ mt: 1, mb: 1 }}>
+                    Source Folders
+                  </Typography>
+                  <FolderTree
+                    treeNodes={sourceTreeNodes}
+                    accError={sourceAccError}
+                    selectedFolderId={selectedSourceFolderId}
+                    onFolderSelect={handleSourceFolderSelect}
+                    onToggleFolder={handleToggleSourceFolder}
+                  />
+                </Box>
+
+                <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+                  <ProjectPicker picker={targetProjectPicker} label="Target Hub/Project" />
+                  <Typography variant="subtitle2" sx={{ mt: 1, mb: 1 }}>
+                    Target Folders
+                  </Typography>
+                  <FolderTree
+                    treeNodes={targetTreeNodes}
+                    accError={targetAccError}
+                    selectedFolderId={selectedTargetFolderId}
+                    onFolderSelect={handleTargetFolderSelect}
+                    onToggleFolder={handleToggleTargetFolder}
+                  />
+                </Box>
+              </>
             )}
 
             <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>

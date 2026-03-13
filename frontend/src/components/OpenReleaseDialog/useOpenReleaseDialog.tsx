@@ -177,12 +177,24 @@ function selectReleaseForExpandedProduct(
 
 export function useOpenReleaseDialog(accessType: string, isOpen: boolean, currentReleaseId?: string) {
   const projectPicker = useProjectPicker(accessType);
+  const sourceProjectPicker = useProjectPicker("ACC");
+  const targetProjectPicker = useProjectPicker("ACC");
   const selectedHubProject = projectPicker.selectedHubProject;
   const selectedProjectId = selectedHubProject?.projectId;
+  const selectedSourceHubProject = sourceProjectPicker.selectedHubProject;
+  const selectedTargetHubProject = targetProjectPicker.selectedHubProject;
+  const selectedSourceProjectId = selectedSourceHubProject?.projectId;
+  const selectedTargetProjectId = selectedTargetHubProject?.projectId;
 
   const [treeNodes, setTreeNodes] = useState<FolderTreeNode[]>([]);
   const [accError, setAccError] = useState<string | null>(null);
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
+  const [sourceTreeNodes, setSourceTreeNodes] = useState<FolderTreeNode[]>([]);
+  const [targetTreeNodes, setTargetTreeNodes] = useState<FolderTreeNode[]>([]);
+  const [sourceAccError, setSourceAccError] = useState<string | null>(null);
+  const [targetAccError, setTargetAccError] = useState<string | null>(null);
+  const [selectedSourceFolderId, setSelectedSourceFolderId] = useState<string | null>(null);
+  const [selectedTargetFolderId, setSelectedTargetFolderId] = useState<string | null>(null);
   const [publishers, setPublishers] = useState<InformedDesignPublisher[]>([]);
   const [isLoadingPublishers, setIsLoadingPublishers] = useState(false);
   const [publishersError, setPublishersError] = useState<string | null>(null);
@@ -232,10 +244,28 @@ export function useOpenReleaseDialog(accessType: string, isOpen: boolean, curren
       return selectedPublisherId?.trim() || null;
     }
 
+    if (accessType === "BRIDGE") {
+      const targetFolderId = selectedTargetFolderId?.trim();
+      const sourceFolderId = selectedSourceFolderId?.trim();
+      const targetProjectAccessId = normalizeProjectAccessId(selectedTargetProjectId).trim();
+      const sourceProjectAccessId = normalizeProjectAccessId(selectedSourceProjectId).trim();
+
+      if (!targetFolderId || !sourceFolderId || !targetProjectAccessId || !sourceProjectAccessId) {
+        return null;
+      }
+
+      return `${targetProjectAccessId}|${targetFolderId}|${sourceProjectAccessId}|${sourceFolderId}`;
+    }
+
     return null;
   })();
 
-  const selectedContextId = accessType === "PUBLIC" ? selectedPublisherId : selectedFolderId;
+  const selectedContextId =
+    accessType === "PUBLIC"
+      ? selectedPublisherId
+      : accessType === "BRIDGE"
+        ? selectedProductsAccessId
+        : selectedFolderId;
 
   const categoryOptions = Array.from(
     new Set(indProjects.map((product) => product.classification?.trim()).filter((value): value is string => Boolean(value))),
@@ -331,6 +361,85 @@ export function useOpenReleaseDialog(accessType: string, isOpen: boolean, curren
     }
   }, [accessType]);
 
+  const loadBridgeProducts = useCallback(async (sourceFolderId: string, targetFolderId: string) => {
+    const normalizedSourceFolderId = sourceFolderId.trim();
+    const normalizedTargetFolderId = targetFolderId.trim();
+    const sourceProjectAccessId = normalizeProjectAccessId(selectedSourceProjectId).trim();
+    const targetProjectAccessId = normalizeProjectAccessId(selectedTargetProjectId).trim();
+
+    if (!normalizedSourceFolderId || !normalizedTargetFolderId || !sourceProjectAccessId || !targetProjectAccessId) {
+      setIsLoadingIndProjects(false);
+      return;
+    }
+
+    try {
+      const token = await getViewerAccessToken();
+      const accessId = `${targetProjectAccessId}|${normalizedTargetFolderId}|${sourceProjectAccessId}|${normalizedSourceFolderId}`;
+      const products = await listProducts({
+        accessType: "BRIDGE",
+        accessId,
+        accessToken: token.access_token,
+      });
+
+      setIndProjects(products);
+    } catch (error) {
+      setIndProjects([]);
+      setIndProjectsError((error as Error).message || "Could not load IND projects.");
+    } finally {
+      setIsLoadingIndProjects(false);
+    }
+  }, [normalizeProjectAccessId, selectedSourceProjectId, selectedTargetProjectId]);
+
+  const handleSourceFolderSelect = useCallback(async (nodeId: string) => {
+    setSelectedSourceFolderId(nodeId);
+    setIndProjects([]);
+    setIndProjectsError(null);
+    setIsLoadingIndProjects(true);
+    setExpandedProductIds([]);
+    setProductReleasesByProductId({});
+    setProductReleaseLoadingByProductId({});
+    setProductReleaseErrorByProductId({});
+    setSelectedReleaseId(null);
+
+    if (accessType !== "BRIDGE") {
+      setIsLoadingIndProjects(false);
+      return;
+    }
+
+    const targetFolderId = selectedTargetFolderId?.trim();
+    if (!targetFolderId) {
+      setIsLoadingIndProjects(false);
+      return;
+    }
+
+    await loadBridgeProducts(nodeId, targetFolderId);
+  }, [accessType, loadBridgeProducts, selectedTargetFolderId]);
+
+  const handleTargetFolderSelect = useCallback(async (nodeId: string) => {
+    setSelectedTargetFolderId(nodeId);
+    setIndProjects([]);
+    setIndProjectsError(null);
+    setIsLoadingIndProjects(true);
+    setExpandedProductIds([]);
+    setProductReleasesByProductId({});
+    setProductReleaseLoadingByProductId({});
+    setProductReleaseErrorByProductId({});
+    setSelectedReleaseId(null);
+
+    if (accessType !== "BRIDGE") {
+      setIsLoadingIndProjects(false);
+      return;
+    }
+
+    const sourceFolderId = selectedSourceFolderId?.trim();
+    if (!sourceFolderId) {
+      setIsLoadingIndProjects(false);
+      return;
+    }
+
+    await loadBridgeProducts(sourceFolderId, nodeId);
+  }, [accessType, loadBridgeProducts, selectedSourceFolderId]);
+
   const handleToggleProduct = useCallback(async (productId: string) => {
     const isExpanded = expandedProductIds.includes(productId);
 
@@ -353,7 +462,7 @@ export function useOpenReleaseDialog(accessType: string, isOpen: boolean, curren
       return;
     }
 
-    if (accessType !== "ACC" && accessType !== "PUBLIC") {
+    if (accessType !== "ACC" && accessType !== "PUBLIC" && accessType !== "BRIDGE") {
       return;
     }
 
@@ -659,6 +768,124 @@ export function useOpenReleaseDialog(accessType: string, isOpen: boolean, curren
   }, [accessType, selectedHubProject, selectedProjectId]);
 
   useEffect(() => {
+    if (accessType !== "BRIDGE") {
+      setSourceTreeNodes([]);
+      setSourceAccError(null);
+      setSelectedSourceFolderId(null);
+      setTargetTreeNodes([]);
+      setTargetAccError(null);
+      setSelectedTargetFolderId(null);
+      return;
+    }
+
+    setSourceTreeNodes([]);
+    setSourceAccError(null);
+    setSelectedSourceFolderId(null);
+    setIndProjects([]);
+    setIndProjectsError(null);
+    setIsLoadingIndProjects(false);
+    setExpandedProductIds([]);
+    setProductReleasesByProductId({});
+    setProductReleaseLoadingByProductId({});
+    setProductReleaseErrorByProductId({});
+    setSelectedReleaseId(null);
+    setSelectedCategory("ALL");
+
+    if (!selectedSourceHubProject) {
+      return;
+    }
+
+    const hubId = ensurePrefixedB(selectedSourceHubProject.accountId);
+    const projectId = ensurePrefixedB(selectedSourceProjectId);
+
+    if (!hubId || !projectId) {
+      setSourceAccError(
+        `Invalid source hub/project identifiers (hub='${hubId}', project='${projectId}'). Cannot load top folders.`,
+      );
+      return;
+    }
+
+    let active = true;
+
+    (async () => {
+      try {
+        const folders = await getTopFolders(hubId, projectId);
+        if (!active) return;
+
+        const nodes: FolderTreeNode[] = folders
+          .filter((folder) => folder.type !== "items" && folder.type !== "versions")
+          .map((folder) => toFolderTreeNode(folder));
+
+        setSourceTreeNodes(nodes);
+      } catch (error) {
+        if (!active) return;
+        setSourceAccError((error as Error).message || "Could not load source folders.");
+        setSourceTreeNodes([]);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [accessType, selectedSourceHubProject, selectedSourceProjectId]);
+
+  useEffect(() => {
+    if (accessType !== "BRIDGE") {
+      return;
+    }
+
+    setTargetTreeNodes([]);
+    setTargetAccError(null);
+    setSelectedTargetFolderId(null);
+    setIndProjects([]);
+    setIndProjectsError(null);
+    setIsLoadingIndProjects(false);
+    setExpandedProductIds([]);
+    setProductReleasesByProductId({});
+    setProductReleaseLoadingByProductId({});
+    setProductReleaseErrorByProductId({});
+    setSelectedReleaseId(null);
+    setSelectedCategory("ALL");
+
+    if (!selectedTargetHubProject) {
+      return;
+    }
+
+    const hubId = ensurePrefixedB(selectedTargetHubProject.accountId);
+    const projectId = ensurePrefixedB(selectedTargetProjectId);
+
+    if (!hubId || !projectId) {
+      setTargetAccError(
+        `Invalid target hub/project identifiers (hub='${hubId}', project='${projectId}'). Cannot load top folders.`,
+      );
+      return;
+    }
+
+    let active = true;
+
+    (async () => {
+      try {
+        const folders = await getTopFolders(hubId, projectId);
+        if (!active) return;
+
+        const nodes: FolderTreeNode[] = folders
+          .filter((folder) => folder.type !== "items" && folder.type !== "versions")
+          .map((folder) => toFolderTreeNode(folder));
+
+        setTargetTreeNodes(nodes);
+      } catch (error) {
+        if (!active) return;
+        setTargetAccError((error as Error).message || "Could not load target folders.");
+        setTargetTreeNodes([]);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [accessType, selectedTargetHubProject, selectedTargetProjectId]);
+
+  useEffect(() => {
     if (accessType !== "PUBLIC") {
       setPublishers([]);
       setPublishersError(null);
@@ -715,7 +942,7 @@ export function useOpenReleaseDialog(accessType: string, isOpen: boolean, curren
   }, [accessType]);
 
   function handleSelectRelease(releaseId: string) {
-    if (selectedProductsAccessId && (accessType === "ACC" || accessType === "PUBLIC")) {
+    if (selectedProductsAccessId && (accessType === "ACC" || accessType === "PUBLIC" || accessType === "BRIDGE")) {
       const selectedReleaseData = {
         releaseId: releaseId.trim(),
         accessType,
@@ -733,7 +960,7 @@ export function useOpenReleaseDialog(accessType: string, isOpen: boolean, curren
   }
 
   const selectedReleaseData: ProductReleaseData | null = (() => {
-    if (accessType !== "ACC" && accessType !== "PUBLIC") {
+    if (accessType !== "ACC" && accessType !== "PUBLIC" && accessType !== "BRIDGE") {
       return null;
     }
 
@@ -856,16 +1083,134 @@ export function useOpenReleaseDialog(accessType: string, isOpen: boolean, curren
     }
   }
 
+  async function handleToggleSourceFolder(nodeId: string) {
+    const projectId = ensurePrefixedB(sourceProjectPicker.selectedHubProject?.projectId);
+    if (!projectId) {
+      return;
+    }
+
+    const node = findNodeById(sourceTreeNodes, nodeId);
+    if (!node || !node.hasChildren) {
+      return;
+    }
+
+    if (node.loaded) {
+      setSourceTreeNodes((prev) =>
+        updateNodeInTree(prev, nodeId, (current) => ({
+          ...current,
+          expanded: !current.expanded,
+        })),
+      );
+      return;
+    }
+
+    setSourceTreeNodes((prev) =>
+      updateNodeInTree(prev, nodeId, (current) => ({
+        ...current,
+        loading: true,
+      })),
+    );
+
+    try {
+      const contents = await getFolderContents(projectId, nodeId);
+      const children = contents
+        .filter((item) => item.type !== "items" && item.type !== "versions")
+        .map((item) => toFolderTreeNode(item));
+
+      setSourceTreeNodes((prev) =>
+        updateNodeInTree(prev, nodeId, (current) => ({
+          ...current,
+          loading: false,
+          loaded: true,
+          expanded: true,
+          children,
+        })),
+      );
+    } catch (error) {
+      const message = (error as Error).message || String(error);
+      setSourceAccError(`Could not load source folder contents: ${message}`);
+      setSourceTreeNodes((prev) =>
+        updateNodeInTree(prev, nodeId, (current) => ({
+          ...current,
+          loading: false,
+        })),
+      );
+    }
+  }
+
+  async function handleToggleTargetFolder(nodeId: string) {
+    const projectId = ensurePrefixedB(targetProjectPicker.selectedHubProject?.projectId);
+    if (!projectId) {
+      return;
+    }
+
+    const node = findNodeById(targetTreeNodes, nodeId);
+    if (!node || !node.hasChildren) {
+      return;
+    }
+
+    if (node.loaded) {
+      setTargetTreeNodes((prev) =>
+        updateNodeInTree(prev, nodeId, (current) => ({
+          ...current,
+          expanded: !current.expanded,
+        })),
+      );
+      return;
+    }
+
+    setTargetTreeNodes((prev) =>
+      updateNodeInTree(prev, nodeId, (current) => ({
+        ...current,
+        loading: true,
+      })),
+    );
+
+    try {
+      const contents = await getFolderContents(projectId, nodeId);
+      const children = contents
+        .filter((item) => item.type !== "items" && item.type !== "versions")
+        .map((item) => toFolderTreeNode(item));
+
+      setTargetTreeNodes((prev) =>
+        updateNodeInTree(prev, nodeId, (current) => ({
+          ...current,
+          loading: false,
+          loaded: true,
+          expanded: true,
+          children,
+        })),
+      );
+    } catch (error) {
+      const message = (error as Error).message || String(error);
+      setTargetAccError(`Could not load target folder contents: ${message}`);
+      setTargetTreeNodes((prev) =>
+        updateNodeInTree(prev, nodeId, (current) => ({
+          ...current,
+          loading: false,
+        })),
+      );
+    }
+  }
+
   return {
     projectPicker,
+    sourceProjectPicker,
+    targetProjectPicker,
     treeNodes,
     accError,
+    sourceTreeNodes,
+    targetTreeNodes,
+    sourceAccError,
+    targetAccError,
     publishers,
     isLoadingPublishers,
     publishersError,
     selectedPublisherId,
     selectedContextId,
     selectedFolderId,
+    selectedSourceFolderId,
+    selectedTargetFolderId,
     indProjects,
     isLoadingIndProjects,
     indProjectsError,
@@ -881,8 +1226,12 @@ export function useOpenReleaseDialog(accessType: string, isOpen: boolean, curren
     selectedReleaseDetails,
     getLatestSelectedReleaseData,
     handleFolderSelect,
+    handleSourceFolderSelect,
+    handleTargetFolderSelect,
     handlePublisherSelect,
     handleToggleFolder,
+    handleToggleSourceFolder,
+    handleToggleTargetFolder,
     handleToggleProduct,
     handleSelectRelease,
     setSelectedCategory,

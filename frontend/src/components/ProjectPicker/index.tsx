@@ -20,14 +20,15 @@ import {
 
 interface ProjectPickerProps {
   picker: UseProjectPickerResult;
+  label?: string;
 }
 
-export function ProjectPicker({ picker }: ProjectPickerProps) {
+export function ProjectPicker({ picker, label = "Hub/Project" }: ProjectPickerProps) {
   return (
     <>
       <TextField
         size="small"
-        label="Hub/Project"
+        label={label}
         value={picker.hubProjectValue}
         inputRef={picker.hubProjectInputRef}
         onClick={picker.onHubProjectClick}
@@ -51,7 +52,7 @@ export function ProjectPicker({ picker }: ProjectPickerProps) {
           ),
         }}
         sx={{
-          flex: 1,
+          width: "100%",
           "& .MuiInputBase-root": {
             height: 36,
             cursor: "pointer",
