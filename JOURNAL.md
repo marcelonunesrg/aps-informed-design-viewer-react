@@ -200,3 +200,49 @@ This file tracks the implementation history of this app. We will append new entr
 - Added remote origin and pushed repository to GitHub.
 - Renamed local branch to `main`, pushed and tracked `origin/main`.
 - Synced local remote refs after default-branch switch and remote `master` cleanup.
+
+---
+
+## 2026-03-31
+
+### Informed Design terminal feature rollout (Phases 1 and 2)
+- Implemented a modal side-drawer terminal in the frontend and integrated it with current release context/state.
+- Added strict command workflow in UI and backend:
+  - `help`, `clear`, `release list`, `release use <releaseId>`, `release tag active`, `release tag obsolete`, `release set-default`, `confirm`, `cancel`
+- Wired terminal-driven release switching into existing release workflow (`submitSpecificReleaseData`) so viewer context updates from command execution.
+
+### Backend re-introduction for command orchestration
+- Reintroduced a lightweight backend (`server/`) in the same repository to host terminal command execution endpoints.
+- Added runtime scripts at root for backend and combined startup:
+  - `dev:be`, `dev`
+- Added Vite proxy for `/api` in frontend dev mode to route terminal requests to backend.
+
+### APS command execution and mutation behavior
+- Implemented read operations for release listing and release context validation/switching.
+- Implemented confirm-gated mutating operations for release tagging and default release assignment.
+- Added confirmation token lifecycle controls (in-memory queue + TTL expiration) to reduce accidental destructive actions.
+- Implemented APS mutation fallback attempts across multiple payload/endpoint shapes for compatibility with API variants.
+
+### Server architecture refactor by responsibility
+- Refactored monolithic backend file into a structured module tree:
+  - `config` for constants
+  - `routes` for HTTP entrypoints
+  - `terminal` for parsing/help/execution orchestration
+  - `services` for APS HTTP integration
+  - `utils` for encoding and confirmation store behavior
+- Kept public API behavior unchanged while improving maintainability and testability.
+
+### Unit testing expansion (backend)
+- Added backend unit tests using Node's built-in test runner for:
+  - command parsing and context validation
+  - confirmation store lifecycle (save/get/delete/expire)
+  - terminal executor orchestration paths (help/list/confirm/cancel)
+  - help payload coverage
+- Added root script `test:be` and updated `test` to run both frontend and backend tests.
+
+### Quality checks and source control
+- Verified green status for build, lint, and tests after each major step.
+- Committed and pushed all changes to `main`.
+- Push reference:
+  - commit `ba00710`
+  - `origin/main`
