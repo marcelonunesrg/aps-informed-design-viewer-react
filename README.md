@@ -32,9 +32,12 @@ From the repository root:
 
 ```bash
 npm run dev:fe       # run frontend
+npm run dev:be       # run backend API for terminal commands
+npm run dev          # run backend + frontend together
 npm run dev:core     # alias for frontend dev
 npm run dev:all      # frontend + automated e2e log capture
 npm run test         # run frontend tests
+npm run test:be      # run backend unit tests
 npm run test:watch   # run frontend tests in watch mode
 npm run build        # build frontend
 npm run build:verify # build frontend
@@ -68,3 +71,60 @@ http://localhost:8080?releaseId=<RELEASE_ID>&accessId=<URL_ENCODED_ACCESS_ID>&ac
 ```
 
 Or fill the fields in the app toolbar and click **Open release in viewer**.
+
+## Terminal Drawer (Phase 1)
+
+The app now includes a modal side drawer terminal for strict commands.
+
+1. Start backend and frontend together:
+
+```bash
+npm run dev
+```
+
+2. Open a release in the viewer.
+3. Click **Terminal** in the header.
+4. Run supported commands:
+
+```text
+help
+clear
+release list
+release use <releaseId>
+release tag active
+release tag obsolete
+release set-default
+confirm
+cancel
+```
+
+Notes:
+
+- `release list` and `release use <releaseId>` execute immediately.
+- Mutating commands (`release tag ...`, `release set-default`) require `confirm`.
+- Confirmation tokens expire after 2 minutes for safety.
+- The backend tries multiple APS payload shapes for state/default updates to handle API variant differences.
+
+## Backend Structure
+
+Server code is now split by responsibility under `server/src`:
+
+```text
+server/src/
+	app.js                      # Express app composition + middleware + route mounting
+	index.js                    # Runtime bootstrap (port + app.listen)
+	config/
+		constants.js              # API URLs, default port, confirmation TTL
+	routes/
+		healthRoutes.js           # /api/health
+		terminalRoutes.js         # /api/terminal/execute
+	terminal/
+		commandParser.js          # strict command grammar + context validation
+		executor.js               # command orchestration + confirmation lifecycle
+		help.js                   # static command help payload
+	services/
+		apsClient.js              # APS HTTP integration (read + mutation operations)
+	utils/
+		confirmationStore.js      # in-memory confirmation token store with TTL
+		encoding.js               # accessId normalization helpers
+```

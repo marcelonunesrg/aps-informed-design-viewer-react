@@ -13,6 +13,7 @@ import { InformedDesignViewer } from "./components/InformedDesignViewer";
 import { LogoutConfirmDialog } from "./components/LogoutConfirmDialog";
 import { OpenReleaseDialog } from "./components/OpenReleaseDialog";
 import { SettingsDialog } from "./components/SettingsDialog";
+import { TerminalDrawer } from "./components/TerminalDrawer";
 import { useHeader } from "./components/Header/useHeader";
 import { logout } from "./services/authService";
 import { useAuthSession } from "./hooks/useAuthSession";
@@ -46,9 +47,12 @@ function App() {
     setReleaseDialogOpen,
     settingsDialogOpen,
     setSettingsDialogOpen,
+    terminalDrawerOpen,
+    setTerminalDrawerOpen,
     closeSettingsDialog,
     closeReleaseDialog,
     closeLogoutDialog,
+    closeTerminalDrawer,
     handleLogout,
   } = useAppUiState({ onLogout: logout });
   const { userProfile, setUserProfile } = useAuthSession();
@@ -70,11 +74,13 @@ function App() {
     requestLogout,
     openSettingsDialog,
     openReleaseDialog,
+    openTerminalDrawer,
   } = useHeader({
     setAccountMenuAnchor,
     setLogoutDialogOpen,
     setReleaseDialogOpen,
     setSettingsDialogOpen,
+    setTerminalDrawerOpen,
     setUserProfile,
   });
 
@@ -100,7 +106,15 @@ function App() {
             onCloseAccountMenu={closeAccountMenu}
             onOpenSettingsDialog={openSettingsDialog}
             onOpenReleaseDialog={openReleaseDialog}
+            onOpenTerminalDrawer={openTerminalDrawer}
             onRequestLogout={requestLogout}
+          />
+
+          <TerminalDrawer
+            open={terminalDrawerOpen}
+            onClose={closeTerminalDrawer}
+            activeReleaseData={activeReleaseData}
+            onApplyReleaseSelection={(nextReleaseData) => submitSpecificReleaseData(nextReleaseData)}
           />
 
           <OpenReleaseDialog

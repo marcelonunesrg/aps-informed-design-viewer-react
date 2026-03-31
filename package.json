@@ -3,12 +3,15 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
+    "dev:be": "node --watch server/src/index.js",
     "dev:fe": "npm --prefix frontend run dev",
     "dev:core": "npm run dev:fe",
+    "dev": "concurrently -n backend,frontend -c cyan,green \"npm run dev:be\" \"npm run dev:fe\"",
     "lint:fe": "npm --prefix frontend run lint",
     "lint": "npm run lint:fe",
+    "test:be": "node --test server/src/**/*.test.js",
     "test:fe": "npm --prefix frontend run test",
-    "test": "npm run test:fe",
+    "test": "npm run test:fe && npm run test:be",
     "test:watch:fe": "npm --prefix frontend run test:watch",
     "test:watch": "npm run test:watch:fe",
     "build:fe": "npm --prefix frontend run build",
@@ -19,6 +22,8 @@
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
     "playwright": "^1.52.0"
   }
 }

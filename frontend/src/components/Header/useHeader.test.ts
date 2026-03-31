@@ -14,6 +14,7 @@ describe("useHeader", () => {
     const setLogoutDialogOpen = vi.fn();
     const setReleaseDialogOpen = vi.fn();
     const setSettingsDialogOpen = vi.fn();
+    const setTerminalDrawerOpen = vi.fn();
     const setUserProfile = vi.fn();
 
     const { result } = renderHook(() =>
@@ -22,6 +23,7 @@ describe("useHeader", () => {
         setLogoutDialogOpen,
         setReleaseDialogOpen,
         setSettingsDialogOpen,
+        setTerminalDrawerOpen,
         setUserProfile,
       }),
     );
@@ -44,6 +46,9 @@ describe("useHeader", () => {
 
     act(() => result.current.openReleaseDialog());
     expect(setReleaseDialogOpen).toHaveBeenCalledWith(true);
+
+    act(() => result.current.openTerminalDrawer());
+    expect(setTerminalDrawerOpen).toHaveBeenCalledWith(true);
   });
 
   it("ignores profile load failures", async () => {
@@ -56,6 +61,7 @@ describe("useHeader", () => {
         setLogoutDialogOpen: vi.fn(),
         setReleaseDialogOpen: vi.fn(),
         setSettingsDialogOpen: vi.fn(),
+        setTerminalDrawerOpen: vi.fn(),
         setUserProfile: vi.fn(),
       }),
     );

@@ -12,6 +12,7 @@ export interface HeaderProps {
   onCloseAccountMenu: () => void;
   onOpenSettingsDialog: () => void;
   onOpenReleaseDialog: () => void;
+  onOpenTerminalDrawer: () => void;
   onRequestLogout: () => void;
 }
 
@@ -20,6 +21,7 @@ interface UseHeaderArgs {
   setLogoutDialogOpen: (value: boolean) => void;
   setReleaseDialogOpen: (value: boolean) => void;
   setSettingsDialogOpen: (value: boolean) => void;
+  setTerminalDrawerOpen: (value: boolean) => void;
   setUserProfile: (value: UserProfile | null) => void;
 }
 
@@ -28,6 +30,7 @@ export function useHeader({
   setLogoutDialogOpen,
   setReleaseDialogOpen,
   setSettingsDialogOpen,
+  setTerminalDrawerOpen,
   setUserProfile,
 }: UseHeaderArgs) {
   const closeAccountMenu = useCallback((): void => {
@@ -67,11 +70,17 @@ export function useHeader({
     setReleaseDialogOpen(true);
   }, [closeAccountMenu, setReleaseDialogOpen]);
 
+  const openTerminalDrawer = useCallback((): void => {
+    closeAccountMenu();
+    setTerminalDrawerOpen(true);
+  }, [closeAccountMenu, setTerminalDrawerOpen]);
+
   return {
     openAccountMenu,
     closeAccountMenu,
     requestLogout,
     openSettingsDialog,
     openReleaseDialog,
+    openTerminalDrawer,
   };
 }

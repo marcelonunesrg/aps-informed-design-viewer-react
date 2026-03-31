@@ -1,6 +1,7 @@
 import Logout from "@mui/icons-material/Logout";
 import OpenInNew from "@mui/icons-material/OpenInNew";
 import Settings from "@mui/icons-material/Settings";
+import TerminalOutlined from "@mui/icons-material/TerminalOutlined";
 import AppBar from "@mui/material/AppBar";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
@@ -24,6 +25,7 @@ export function Header({
   onCloseAccountMenu,
   onOpenSettingsDialog,
   onOpenReleaseDialog,
+  onOpenTerminalDrawer,
   onRequestLogout,
 }: HeaderProps) {
   const { t } = useTranslation();
@@ -44,6 +46,15 @@ export function Header({
         >
           {t("appTitle")}
         </Typography>
+        <Button
+          color="inherit"
+          size="small"
+          startIcon={<TerminalOutlined fontSize="small" />}
+          onClick={onOpenTerminalDrawer}
+          sx={{ mr: 1, textTransform: "none" }}
+        >
+          Terminal
+        </Button>
         <Button
           color="inherit"
           size="small"

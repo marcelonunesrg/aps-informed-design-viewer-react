@@ -11,13 +11,16 @@ interface AppUiState {
   logoutDialogOpen: boolean;
   releaseDialogOpen: boolean;
   settingsDialogOpen: boolean;
+  terminalDrawerOpen: boolean;
   setAccountMenuAnchor: (value: HTMLElement | null) => void;
   setLogoutDialogOpen: (value: boolean) => void;
   setReleaseDialogOpen: (value: boolean) => void;
   setSettingsDialogOpen: (value: boolean) => void;
+  setTerminalDrawerOpen: (value: boolean) => void;
   closeSettingsDialog: () => void;
   closeReleaseDialog: () => void;
   closeLogoutDialog: () => void;
+  closeTerminalDrawer: () => void;
   openAccountMenu: (anchor: HTMLElement) => void;
   closeAccountMenu: () => void;
 }
@@ -27,6 +30,7 @@ const initialAppUiState = {
   logoutDialogOpen: false,
   releaseDialogOpen: false,
   settingsDialogOpen: false,
+  terminalDrawerOpen: false,
 };
 
 const useAppUiStore = create<AppUiState>((set) => ({
@@ -35,9 +39,11 @@ const useAppUiStore = create<AppUiState>((set) => ({
   setLogoutDialogOpen: (value) => set({ logoutDialogOpen: value }),
   setReleaseDialogOpen: (value) => set({ releaseDialogOpen: value }),
   setSettingsDialogOpen: (value) => set({ settingsDialogOpen: value }),
+  setTerminalDrawerOpen: (value) => set({ terminalDrawerOpen: value }),
   closeSettingsDialog: () => set({ settingsDialogOpen: false }),
   closeReleaseDialog: () => set({ releaseDialogOpen: false }),
   closeLogoutDialog: () => set({ logoutDialogOpen: false }),
+  closeTerminalDrawer: () => set({ terminalDrawerOpen: false }),
   openAccountMenu: (anchor) => set({ accountMenuAnchor: anchor }),
   closeAccountMenu: () => set({ accountMenuAnchor: null }),
 }));
@@ -55,9 +61,12 @@ export function useAppUiState({ onLogout }: UseAppUiStateArgs = {}) {
   const setReleaseDialogOpen = useAppUiStore((state) => state.setReleaseDialogOpen);
   const settingsDialogOpen = useAppUiStore((state) => state.settingsDialogOpen);
   const setSettingsDialogOpen = useAppUiStore((state) => state.setSettingsDialogOpen);
+  const terminalDrawerOpen = useAppUiStore((state) => state.terminalDrawerOpen);
+  const setTerminalDrawerOpen = useAppUiStore((state) => state.setTerminalDrawerOpen);
   const closeSettingsDialog = useAppUiStore((state) => state.closeSettingsDialog);
   const closeReleaseDialog = useAppUiStore((state) => state.closeReleaseDialog);
   const closeLogoutDialog = useAppUiStore((state) => state.closeLogoutDialog);
+  const closeTerminalDrawer = useAppUiStore((state) => state.closeTerminalDrawer);
   const openAccountMenuByAnchor = useAppUiStore((state) => state.openAccountMenu);
   const closeAccountMenu = useAppUiStore((state) => state.closeAccountMenu);
 
@@ -82,9 +91,12 @@ export function useAppUiState({ onLogout }: UseAppUiStateArgs = {}) {
     setReleaseDialogOpen,
     settingsDialogOpen,
     setSettingsDialogOpen,
+    terminalDrawerOpen,
+    setTerminalDrawerOpen,
     closeSettingsDialog,
     closeReleaseDialog,
     closeLogoutDialog,
+    closeTerminalDrawer,
     handleLogout,
     openAccountMenu,
     closeAccountMenu,
